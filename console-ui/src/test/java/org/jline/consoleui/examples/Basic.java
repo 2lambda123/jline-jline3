@@ -66,7 +66,7 @@ public class Basic {
             // If you are not using Completers you do not need to create LineReader.
             //
             LineReader reader = LineReaderBuilder.builder().terminal(terminal).build();
-            ConsolePrompt prompt = new ConsolePrompt(reader, terminal, config);
+            ConsolePrompt prompt = new ConsolePrompt(reader, terminal, config).cancellable(true);
             PromptBuilder promptBuilder = prompt.getPromptBuilder();
 
             promptBuilder
@@ -169,9 +169,11 @@ public class Basic {
             Map<String, ? extends PromptResultItemIF> result = prompt.prompt(header, promptBuilder.build());
             System.out.println("result = " + result);
 
-            ConfirmResult delivery = (ConfirmResult) result.get("delivery");
-            if (delivery.getConfirmed() == ConfirmChoice.ConfirmationValue.YES) {
-                System.out.println("We will deliver the pizza in 5 minutes");
+            if (result != null) {
+                ConfirmResult delivery = (ConfirmResult) result.get("delivery");
+                if (delivery.getConfirmed() == ConfirmChoice.ConfirmationValue.YES) {
+                    System.out.println("We will deliver the pizza in 5 minutes");
+                }
             }
 
         } catch (Exception e) {

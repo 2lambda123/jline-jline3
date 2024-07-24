@@ -16,16 +16,13 @@ import org.jline.consoleui.elements.PageSizeType;
 import org.jline.consoleui.elements.items.ListItemIF;
 import org.jline.consoleui.elements.items.impl.ListItem;
 
-public class ListPromptBuilder {
-    private final PromptBuilder promptBuilder;
-    private String name;
-    private String message;
+public class ListPromptBuilder extends AbstractBuilder<ListPromptBuilder> {
     private int pageSize;
     private PageSizeType pageSizeType;
     private final List<ListItemIF> itemList = new ArrayList<>();
 
     public ListPromptBuilder(PromptBuilder promptBuilder) {
-        this.promptBuilder = promptBuilder;
+        super(promptBuilder);
         this.pageSize = 10;
         this.pageSizeType = PageSizeType.ABSOLUTE;
     }

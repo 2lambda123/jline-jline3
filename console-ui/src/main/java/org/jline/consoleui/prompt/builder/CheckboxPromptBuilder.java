@@ -15,16 +15,13 @@ import org.jline.consoleui.elements.Checkbox;
 import org.jline.consoleui.elements.PageSizeType;
 import org.jline.consoleui.elements.items.CheckboxItemIF;
 
-public class CheckboxPromptBuilder {
-    private final PromptBuilder promptBuilder;
-    private String name;
-    private String message;
+public class CheckboxPromptBuilder extends AbstractBuilder<CheckboxPromptBuilder> {
     private int pageSize;
     private PageSizeType pageSizeType;
     private final List<CheckboxItemIF> itemList;
 
     public CheckboxPromptBuilder(PromptBuilder promptBuilder) {
-        this.promptBuilder = promptBuilder;
+        super(promptBuilder);
         this.pageSize = 10;
         this.pageSizeType = PageSizeType.ABSOLUTE;
         itemList = new ArrayList<>();
@@ -32,22 +29,6 @@ public class CheckboxPromptBuilder {
 
     void addItem(CheckboxItemIF checkboxItem) {
         itemList.add(checkboxItem);
-    }
-
-    public CheckboxPromptBuilder name(String name) {
-        this.name = name;
-        if (message == null) {
-            message = name;
-        }
-        return this;
-    }
-
-    public CheckboxPromptBuilder message(String message) {
-        this.message = message;
-        if (name == null) {
-            name = message;
-        }
-        return this;
     }
 
     public CheckboxPromptBuilder pageSize(int absoluteSize) {

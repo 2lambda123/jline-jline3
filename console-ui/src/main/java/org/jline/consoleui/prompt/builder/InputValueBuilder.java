@@ -11,16 +11,13 @@ package org.jline.consoleui.prompt.builder;
 import org.jline.consoleui.elements.InputValue;
 import org.jline.reader.Completer;
 
-public class InputValueBuilder {
-    private final PromptBuilder promptBuilder;
-    private String name;
+public class InputValueBuilder extends AbstractBuilder<InputValueBuilder> {
     private String defaultValue;
-    private String message;
     private Character mask;
     private Completer completer;
 
     public InputValueBuilder(PromptBuilder promptBuilder) {
-        this.promptBuilder = promptBuilder;
+        super(promptBuilder);
     }
 
     public InputValueBuilder name(String name) {

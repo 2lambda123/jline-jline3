@@ -30,6 +30,7 @@ public class ConsolePrompt {
     private final LineReader reader;
     private final Terminal terminal;
     private final UiConfig config;
+    private boolean cancellable = false;
 
     /**
      *
@@ -63,6 +64,11 @@ public class ConsolePrompt {
             }
             config.setReaderOptions(options);
         }
+    }
+
+    public ConsolePrompt cancellable(boolean cancellable) {
+        this.cancellable = cancellable;
+        return this;
     }
 
     /**
@@ -99,7 +105,8 @@ public class ConsolePrompt {
 
             Map<String, PromptResultItemIF> resultMap = new HashMap<>();
 
-            for (PromptableElementIF pe : promptableElementList) {
+            for (int i = 0; i < promptableElementList.size(); i++) {
+                PromptableElementIF pe = promptableElementList.get(i);
                 AttributedStringBuilder message = new AttributedStringBuilder();
                 message.style(config.style(".pr")).append("? ");
                 message.style(config.style(".me")).append(pe.getMessage()).append(" ");
@@ -115,6 +122,7 @@ public class ConsolePrompt {
                                     asb.toAttributedString(),
                                     lc.getListItemList(),
                                     computePageSize(terminal, lc.getPageSize(), lc.getPageSizeType()),
+                                    cancellable,
                                     config)
                             .execute();
                 } else if (pe instanceof InputValue) {
@@ -122,7 +130,8 @@ public class ConsolePrompt {
                     if (ip.getDefaultValue() != null) {
                         asb.append("(").append(ip.getDefaultValue()).append(") ");
                     }
-                    result = InputValuePrompt.getPrompt(reader, terminal, header, asb.toAttributedString(), ip, config)
+                    result = InputValuePrompt.getPrompt(
+                                    reader, terminal, header, asb.toAttributedString(), ip, cancellable, config)
                             .execute();
                 } else if (pe instanceof ExpandableChoice) {
                     ExpandableChoice ec = (ExpandableChoice) pe;
@@ -138,11 +147,17 @@ public class ConsolePrompt {
                     asb.append("h) ");
                     try {
                         result = ExpandableChoicePrompt.getPrompt(
-                                        terminal, header, asb.toAttributedString(), ec, config)
+                                        terminal, header, asb.toAttributedString(), ec, cancellable, config)
                                 .execute();
                     } catch (ExpandableChoiceException e) {
                         result = ListChoicePrompt.getPrompt(
-                                        terminal, header, message.toAttributedString(), ec.getChoiceItems(), 10, config)
+                                        terminal,
+                                        header,
+                                        message.toAttributedString(),
+                                        ec.getChoiceItems(),
+                                        10,
+                                        cancellable,
+                                        config)
                                 .execute();
                     }
                 } else if (pe instanceof Checkbox) {
@@ -153,6 +168,7 @@ public class ConsolePrompt {
                                     message.toAttributedString(),
                                     cb.getCheckboxItemList(),
                                     computePageSize(terminal, cb.getPageSize(), cb.getPageSizeType()),
+                                    cancellable,
                                     config)
                             .execute();
                 } else if (pe instanceof ConfirmChoice) {
@@ -165,10 +181,23 @@ public class ConsolePrompt {
                         asb.append(config.resourceBundle().getString("confirmation_no_default"));
                     }
                     asb.append(" ");
-                    result = ConfirmPrompt.getPrompt(terminal, header, asb.toAttributedString(), cc, config)
+                    result = ConfirmPrompt.getPrompt(
+                                    terminal, header, asb.toAttributedString(), cc, cancellable, config)
                             .execute();
                 } else {
                     throw new IllegalArgumentException("wrong type of promptable element");
+                }
+                if (result == null) {
+                    // Prompt was cancelled by the user
+                    if (i > 0) {
+                        // Remove last result
+                        header.remove(header.size() - 1);
+                        // Go back to previous prompt
+                        i -= 2;
+                        continue;
+                    } else {
+                        return null;
+                    }
                 }
                 String resp = result.getResult();
                 if (result instanceof ConfirmResult) {
