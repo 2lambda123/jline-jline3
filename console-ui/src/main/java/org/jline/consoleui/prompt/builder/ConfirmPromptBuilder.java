@@ -10,14 +10,11 @@ package org.jline.consoleui.prompt.builder;
 
 import org.jline.consoleui.elements.ConfirmChoice;
 
-public class ConfirmPromptBuilder {
-    private final PromptBuilder promptBuilder;
-    private String name;
-    private String message;
+public class ConfirmPromptBuilder extends AbstractBuilder<ConfirmPromptBuilder> {
     private ConfirmChoice.ConfirmationValue defaultConfirmationValue;
 
     public ConfirmPromptBuilder(PromptBuilder promptBuilder) {
-        this.promptBuilder = promptBuilder;
+        super(promptBuilder);
     }
 
     public ConfirmPromptBuilder name(String name) {

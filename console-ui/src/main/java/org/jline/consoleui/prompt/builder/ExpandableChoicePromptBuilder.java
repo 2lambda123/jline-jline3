@@ -14,14 +14,11 @@ import java.util.List;
 import org.jline.consoleui.elements.ExpandableChoice;
 import org.jline.consoleui.elements.items.ChoiceItemIF;
 
-public class ExpandableChoicePromptBuilder {
-    private final PromptBuilder promptBuilder;
-    private String name;
-    private String message;
+public class ExpandableChoicePromptBuilder extends AbstractBuilder<ExpandableChoicePromptBuilder> {
     private final List<ChoiceItemIF> itemList;
 
     public ExpandableChoicePromptBuilder(PromptBuilder promptBuilder) {
-        this.promptBuilder = promptBuilder;
+        super(promptBuilder);
         this.itemList = new ArrayList<>();
     }
 

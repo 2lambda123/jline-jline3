@@ -57,9 +57,9 @@ public class Basic {
                 throw new IllegalStateException("Dumb terminal detected.\nConsoleUi requires real terminal to work!\n"
                         + "Note: On Windows Jansi or JNA library must be included in classpath.");
             } else if (OSUtils.IS_WINDOWS) {
-                config = new ConsolePrompt.UiConfig(">", "( )", "(x)", "( )");
+                config = new ConsolePrompt.UiConfig(">", "( )", "(x)", "( )", true);
             } else {
-                config = new ConsolePrompt.UiConfig("\u276F", "\u25EF ", "\u25C9 ", "\u25EF ");
+                config = new ConsolePrompt.UiConfig("\u276F", "\u25EF ", "\u25C9 ", "\u25EF ", true);
             }
             //
             // LineReader is needed only if you are adding JLine Completers in your prompts.
@@ -169,9 +169,11 @@ public class Basic {
             Map<String, ? extends PromptResultItemIF> result = prompt.prompt(header, promptBuilder.build());
             System.out.println("result = " + result);
 
-            ConfirmResult delivery = (ConfirmResult) result.get("delivery");
-            if (delivery.getConfirmed() == ConfirmChoice.ConfirmationValue.YES) {
-                System.out.println("We will deliver the pizza in 5 minutes");
+            if (result != null) {
+                ConfirmResult delivery = (ConfirmResult) result.get("delivery");
+                if (delivery.getConfirmed() == ConfirmChoice.ConfirmationValue.YES) {
+                    System.out.println("We will deliver the pizza in 5 minutes");
+                }
             }
 
         } catch (Exception e) {

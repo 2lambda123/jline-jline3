@@ -99,7 +99,8 @@ public class ConsolePrompt {
 
             Map<String, PromptResultItemIF> resultMap = new HashMap<>();
 
-            for (PromptableElementIF pe : promptableElementList) {
+            for (int i = 0; i < promptableElementList.size(); i++) {
+                PromptableElementIF pe = promptableElementList.get(i);
                 AttributedStringBuilder message = new AttributedStringBuilder();
                 message.style(config.style(".pr")).append("? ");
                 message.style(config.style(".me")).append(pe.getMessage()).append(" ");
@@ -170,6 +171,24 @@ public class ConsolePrompt {
                 } else {
                     throw new IllegalArgumentException("wrong type of promptable element");
                 }
+                if (result == null) {
+                    // Prompt was cancelled by the user
+                    if (i > 0) {
+                        // Remove last result
+                        header.remove(header.size() - 1);
+                        // Go back to previous prompt
+                        i -= 2;
+                        continue;
+                    } else {
+                        if (config.cancellable()) {
+                            return null;
+                        } else {
+                            // Repeat current prompt
+                            i -= 1;
+                            continue;
+                        }
+                    }
+                }
                 String resp = result.getResult();
                 if (result instanceof ConfirmResult) {
                     ConfirmResult cr = (ConfirmResult) result;
@@ -224,12 +243,14 @@ public class ConsolePrompt {
         private final StyleResolver resolver;
         private final ResourceBundle resourceBundle;
         private Map<LineReader.Option, Boolean> readerOptions = new HashMap<>();
+        private final boolean cancellable;
 
         public UiConfig() {
-            this(null, null, null, null);
+            this(null, null, null, null, false);
         }
 
-        public UiConfig(String indicator, String uncheckedBox, String checkedBox, String unavailable) {
+        public UiConfig(
+                String indicator, String uncheckedBox, String checkedBox, String unavailable, boolean cancellable) {
             String uc = System.getenv(UI_COLORS);
             String uiColors = uc != null && Styles.isStylePattern(uc) ? uc : DEFAULT_UI_COLORS;
             this.resolver = resolver(uiColors);
@@ -238,6 +259,7 @@ public class ConsolePrompt {
             this.checkedBox = toAttributedString(resolver, (checkedBox != null ? checkedBox : "x "), ".be");
             this.unavailable = toAttributedString(resolver, (unavailable != null ? unavailable : "- "), ".bd");
             this.resourceBundle = ResourceBundle.getBundle("consoleui_messages");
+            this.cancellable = cancellable;
         }
 
         private static AttributedString toAttributedString(StyleResolver resolver, String string, String styleKey) {
@@ -269,6 +291,10 @@ public class ConsolePrompt {
 
         public ResourceBundle resourceBundle() {
             return resourceBundle;
+        }
+
+        public boolean cancellable() {
+            return cancellable;
         }
 
         protected void setReaderOptions(Map<LineReader.Option, Boolean> readerOptions) {

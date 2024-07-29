@@ -81,7 +81,7 @@ public class Issue1025 {
         }
 
         ConsolePrompt.UiConfig config;
-        config = new ConsolePrompt.UiConfig("\u276F", "\u25EF ", "\u25C9 ", "\u25EF ");
+        config = new ConsolePrompt.UiConfig("\u276F", "\u25EF ", "\u25C9 ", "\u25EF ", false);
         //
         // LineReader is needed only if you are adding JLine Completers in your prompts.
         // If you are not using Completers you do not need to create LineReader.
