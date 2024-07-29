@@ -30,7 +30,6 @@ public class ConsolePrompt {
     private final LineReader reader;
     private final Terminal terminal;
     private final UiConfig config;
-    private boolean cancellable = false;
 
     /**
      *
@@ -64,11 +63,6 @@ public class ConsolePrompt {
             }
             config.setReaderOptions(options);
         }
-    }
-
-    public ConsolePrompt cancellable(boolean cancellable) {
-        this.cancellable = cancellable;
-        return this;
     }
 
     /**
@@ -122,7 +116,6 @@ public class ConsolePrompt {
                                     asb.toAttributedString(),
                                     lc.getListItemList(),
                                     computePageSize(terminal, lc.getPageSize(), lc.getPageSizeType()),
-                                    cancellable,
                                     config)
                             .execute();
                 } else if (pe instanceof InputValue) {
@@ -130,8 +123,7 @@ public class ConsolePrompt {
                     if (ip.getDefaultValue() != null) {
                         asb.append("(").append(ip.getDefaultValue()).append(") ");
                     }
-                    result = InputValuePrompt.getPrompt(
-                                    reader, terminal, header, asb.toAttributedString(), ip, cancellable, config)
+                    result = InputValuePrompt.getPrompt(reader, terminal, header, asb.toAttributedString(), ip, config)
                             .execute();
                 } else if (pe instanceof ExpandableChoice) {
                     ExpandableChoice ec = (ExpandableChoice) pe;
@@ -147,17 +139,11 @@ public class ConsolePrompt {
                     asb.append("h) ");
                     try {
                         result = ExpandableChoicePrompt.getPrompt(
-                                        terminal, header, asb.toAttributedString(), ec, cancellable, config)
+                                        terminal, header, asb.toAttributedString(), ec, config)
                                 .execute();
                     } catch (ExpandableChoiceException e) {
                         result = ListChoicePrompt.getPrompt(
-                                        terminal,
-                                        header,
-                                        message.toAttributedString(),
-                                        ec.getChoiceItems(),
-                                        10,
-                                        cancellable,
-                                        config)
+                                        terminal, header, message.toAttributedString(), ec.getChoiceItems(), 10, config)
                                 .execute();
                     }
                 } else if (pe instanceof Checkbox) {
@@ -168,7 +154,6 @@ public class ConsolePrompt {
                                     message.toAttributedString(),
                                     cb.getCheckboxItemList(),
                                     computePageSize(terminal, cb.getPageSize(), cb.getPageSizeType()),
-                                    cancellable,
                                     config)
                             .execute();
                 } else if (pe instanceof ConfirmChoice) {
@@ -181,8 +166,7 @@ public class ConsolePrompt {
                         asb.append(config.resourceBundle().getString("confirmation_no_default"));
                     }
                     asb.append(" ");
-                    result = ConfirmPrompt.getPrompt(
-                                    terminal, header, asb.toAttributedString(), cc, cancellable, config)
+                    result = ConfirmPrompt.getPrompt(terminal, header, asb.toAttributedString(), cc, config)
                             .execute();
                 } else {
                     throw new IllegalArgumentException("wrong type of promptable element");
@@ -196,7 +180,13 @@ public class ConsolePrompt {
                         i -= 2;
                         continue;
                     } else {
-                        return null;
+                        if (config.cancellable()) {
+                            return null;
+                        } else {
+                            // Repeat current prompt
+                            i -= 1;
+                            continue;
+                        }
                     }
                 }
                 String resp = result.getResult();
@@ -253,12 +243,14 @@ public class ConsolePrompt {
         private final StyleResolver resolver;
         private final ResourceBundle resourceBundle;
         private Map<LineReader.Option, Boolean> readerOptions = new HashMap<>();
+        private final boolean cancellable;
 
         public UiConfig() {
-            this(null, null, null, null);
+            this(null, null, null, null, false);
         }
 
-        public UiConfig(String indicator, String uncheckedBox, String checkedBox, String unavailable) {
+        public UiConfig(
+                String indicator, String uncheckedBox, String checkedBox, String unavailable, boolean cancellable) {
             String uc = System.getenv(UI_COLORS);
             String uiColors = uc != null && Styles.isStylePattern(uc) ? uc : DEFAULT_UI_COLORS;
             this.resolver = resolver(uiColors);
@@ -267,6 +259,7 @@ public class ConsolePrompt {
             this.checkedBox = toAttributedString(resolver, (checkedBox != null ? checkedBox : "x "), ".be");
             this.unavailable = toAttributedString(resolver, (unavailable != null ? unavailable : "- "), ".bd");
             this.resourceBundle = ResourceBundle.getBundle("consoleui_messages");
+            this.cancellable = cancellable;
         }
 
         private static AttributedString toAttributedString(StyleResolver resolver, String string, String styleKey) {
@@ -298,6 +291,10 @@ public class ConsolePrompt {
 
         public ResourceBundle resourceBundle() {
             return resourceBundle;
+        }
+
+        public boolean cancellable() {
+            return cancellable;
         }
 
         protected void setReaderOptions(Map<LineReader.Option, Boolean> readerOptions) {

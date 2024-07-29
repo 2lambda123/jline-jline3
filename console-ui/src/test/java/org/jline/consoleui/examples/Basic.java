@@ -57,16 +57,16 @@ public class Basic {
                 throw new IllegalStateException("Dumb terminal detected.\nConsoleUi requires real terminal to work!\n"
                         + "Note: On Windows Jansi or JNA library must be included in classpath.");
             } else if (OSUtils.IS_WINDOWS) {
-                config = new ConsolePrompt.UiConfig(">", "( )", "(x)", "( )");
+                config = new ConsolePrompt.UiConfig(">", "( )", "(x)", "( )", true);
             } else {
-                config = new ConsolePrompt.UiConfig("\u276F", "\u25EF ", "\u25C9 ", "\u25EF ");
+                config = new ConsolePrompt.UiConfig("\u276F", "\u25EF ", "\u25C9 ", "\u25EF ", true);
             }
             //
             // LineReader is needed only if you are adding JLine Completers in your prompts.
             // If you are not using Completers you do not need to create LineReader.
             //
             LineReader reader = LineReaderBuilder.builder().terminal(terminal).build();
-            ConsolePrompt prompt = new ConsolePrompt(reader, terminal, config).cancellable(true);
+            ConsolePrompt prompt = new ConsolePrompt(reader, terminal, config);
             PromptBuilder promptBuilder = prompt.getPromptBuilder();
 
             promptBuilder
